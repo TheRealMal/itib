@@ -1,7 +1,7 @@
 import numpy as np
 
 class MultilayerNNetwork:
-    def __init__(self, N, J, M, X, T, learning_rate, epsilon_cap) -> None:
+    def __init__(self, N, J, M, X, T, learning_rate, epsilon_cap, default_weights=0) -> None:
         self.__N              = N
         self.__J              = J
         self.__M              = M
@@ -13,8 +13,8 @@ class MultilayerNNetwork:
         
         self.__Y              = [0.0] * M
 
-        self.__hidden_w       = [[0.0 for __ in range(N + 1)] for _ in range(J)]
-        self.__output_w       = [[0.0 for __ in range(J + 1)] for _ in range(M)]
+        self.__hidden_w       = [[default_weights for __ in range(N + 1)] for _ in range(J)]
+        self.__output_w       = [[default_weights for __ in range(J + 1)] for _ in range(M)]
 
         self.__hidden_net     = [0.0] * J
         self.__output_net     = [0.0] * M
@@ -24,6 +24,8 @@ class MultilayerNNetwork:
 
         self.__hidden_x       = [0] * (N + 1)
         self.__output_x       = [0] * (J + 1)
+
+        self.__plot           = []
 
     def activation_func(self, net) -> float:
         return (1 - np.exp(-net)) / (1 + np.exp(-net))
@@ -59,10 +61,10 @@ class MultilayerNNetwork:
             self.__output_e[_] = self.d_activation_func(self.__output_net[_]) * (self.__t_arr[_] - self.__Y[_])
         # II.2
         for _ in range(self.__J):
-            shitSum = 0
+            hid_sum = 0
             for __ in range(self.__M):
-                shitSum += self.__hidden_w[_][__] * self.__output_e[__]
-            self.__hidden_e[_] = self.d_activation_func(self.__hidden_net[_]) * shitSum
+                hid_sum += self.__output_w[__][_] * self.__output_e[__]
+            self.__hidden_e[_] = self.d_activation_func(self.__hidden_net[_]) * hid_sum
     
     def weights_correction(self) -> None:
         # III.1
@@ -73,6 +75,14 @@ class MultilayerNNetwork:
         for _ in range(len(self.__output_w)):
             for __ in range(len(self.__output_w[_])):
                 self.__output_w[_][__] += self.__learning_rate * self.__output_x[__] * self.__output_e[_]
+
+    def __generate_plot(self) -> None:
+        import matplotlib.pyplot as plt
+        plt.plot(self.__plot, "k-")
+        plt.ylabel("Суммарная ошибка")
+        plt.xlabel("Эпоха")
+        plt.grid(True)
+        plt.show()
 
     def __print_epoch(self, E, ifEnd=0) -> None:
         print("~" * 16)
@@ -94,20 +104,32 @@ class MultilayerNNetwork:
             for _ in range(self.__M):
                 err += (self.__t_arr[_] - self.__Y[_]) ** 2
             err = np.sqrt(err)
-
+            self.__plot.append(err)
             self.__print_epoch(err, err <= self.__eps_cap)
             self.__k += 1
+        self.__generate_plot()
 
 
 def main():
-    tmp = MultilayerNNetwork(
+    # Example
+    '''net = MultilayerNNetwork(
         N = 3, J = 3, M = 4,
         X = [1, 0.3, -0.1, 0.9],
         T = [0.1, -0.6, 0.2, 0.7],
         learning_rate = 1,
-        epsilon_cap = 0.001
+        epsilon_cap = 0.001,
+        default_weights = 0.2
+    )'''
+    # 8 Variant
+    net = MultilayerNNetwork(
+        N = 1, J = 1, M = 3,
+        X = [1, -2],
+        T = [0.2, 0.1, 0.3],
+        learning_rate = 1,
+        epsilon_cap = 0.001,
+        default_weights = 0.5
     )
-    tmp.start()
+    net.start()
 
 if __name__ == "__main__":
     main()

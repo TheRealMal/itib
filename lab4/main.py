@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 def generate_sets(n) -> list:
     from itertools import product as pr
@@ -105,6 +104,7 @@ class NNet:
                 break
 
     def __generate_plot(self) -> None:
+        import matplotlib.pyplot as plt
         plt.plot(self.__plot, "ko-")
         plt.ylabel("Ошибка")
         plt.xlabel("Эпоха")
