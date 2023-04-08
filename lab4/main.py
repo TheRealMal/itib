@@ -6,12 +6,12 @@ def generate_sets(n) -> list:
 
 class NNet:
     def __init__(self, n = 0.3) -> None:
-        self.__learning_rate      = n                         # Норма обучения
-        self.__k                  = 0                         # Эпохи
+        self.__learning_rate      = n                           # Норма обучения
+        self.__k                  = 0                           # Эпохи
         self.__center_coords      = self.__find_center_coords() # Скрытых RBF-Нейронов
         self.__J                  = len(self.__center_coords)
-        self.__weights            = np.zeros(self.__J + 1)    # Синаптические веса
-        self.__plot               = []                        # Для построения графика
+        self.__weights            = np.zeros(self.__J + 1)      # Синаптические веса
+        self.__plot               = []                          # Для построения графика
 
     def __clear(self) -> None:
         self.__k                  = 0
@@ -34,8 +34,6 @@ class NNet:
         return (v[0] or v[1] or v[3]) and v[2]
         # Example
         #return not (v[0] and v[1]) and v[2] and v[3]
-        # Ram
-        #return not v[0] and v[1] and (not v[2] or v[3])
     
     def phi_function(self, x, c) -> float:
         return np.exp(-np.sum((np.array(x) - np.array(c)) ** 2))
@@ -132,11 +130,9 @@ def main():
     net1.build_RBF_model([[0,0,0,0],[0,0,1,0],[0,1,1,0],[1,0,1,1],[1,1,0,1]], 3)
 
     # Полный набор, пороговая функция
-    #tmp.build_RBF_model(generate_sets(4), 0)
+    #net1.build_RBF_model(generate_sets(4), 0)
     # Example
-    #tmp.build_RBF_model([[0,0,0,1],[0,1,1,1],[1,0,1,0],[1,0,1,1],[1,1,1,0]], 0)
-    # Ram
-    #tmp.build_RBF_model([[0,0,1,0],[0,1,0,1]], 2)
+    #net1.build_RBF_model([[0,0,0,1],[0,1,1,1],[1,0,1,0],[1,0,1,1],[1,1,1,0]], 0)
 
 if __name__ == "__main__":
     main()
