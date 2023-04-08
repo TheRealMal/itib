@@ -43,23 +43,23 @@ class NNet:
         for c, w in zip(self.__center_coords, self.__weights[1:]):
             net += w * self.phi_function(x, c)
         return net
-    
+
     #
     # Функции активации
     #
-    def lg2_activation_func(self, net) -> int:
+    def lg2_activation_func(self, net) -> float:
         return ((net / (1 + abs(net)) + 1)) / 2
     
-    def lg3_activation_func(self, net) -> int:
+    def lg3_activation_func(self, net) -> float:
         return 1 / (1 + np.exp(-net))
     
-    def lg4_activation_func(self, net) -> int:
+    def lg4_activation_func(self, net) -> float:
         return (np.tanh(net) + 1) / 2
 
-    def th_activation_func(self, net) -> int:
+    def th_activation_func(self, net) -> float:
         return int(net >= 0)
     
-    def activation_func(self, net, c = 0) -> int:
+    def activation_func(self, net, c = 0) -> float:
         if c == 0:
             return self.th_activation_func(net)
         elif c == 1:
@@ -68,6 +68,31 @@ class NNet:
             return self.lg2_activation_func(net)
         elif c == 3:
             return self.lg3_activation_func(net)
+        elif c == 4:
+            return self.lg4_activation_func(net)
+    # --------------------------------------------
+
+    #
+    # Производные функций активации
+    #
+    def der_lg2_activation_func(self, net) -> float:
+        return 0
+    
+    def der_lg3_activation_func(self, net) -> float:
+        return (1 / (1 + np.exp(-net))) * (1 - 1 / (1 + np.exp(-net)))
+    
+    def der_lg4_activation_func(self, net) -> float:
+        return 0
+
+    def der_activation_func(self, net, c = 0) -> float:
+        if c == 0:
+            return 1
+        elif c == 1:
+            return 1
+        elif c == 2:
+            return self.lg2_activation_func(net)
+        elif c == 3:
+            return self.der_lg3_activation_func(net)
         elif c == 4:
             return self.lg4_activation_func(net)
     # --------------------------------------------
@@ -90,7 +115,7 @@ class NNet:
                 out_vector.append(y)
                 error = self.logic_function(x) - y
                 phi_arr = [1] + [self.phi_function(x, c) for c in self.__center_coords]
-                delta = self.__learning_rate * error * np.array(phi_arr)
+                delta = self.__learning_rate * error * self.der_activation_func(net, act_fn) * np.array(phi_arr)
                 self.__weights += delta
             ham_dist = self.get_ham_dist(learning_selection, out_vector)
             self.__print_epoch(out_vector, ham_dist, int(ham_dist == 0))
@@ -125,14 +150,14 @@ class NNet:
 
 def main():
     # 8 Variant
-    net1 = NNet(0.3)
-    net1.build_RBF_model([[0,0,0,0],[0,0,1,0],[0,1,1,0],[1,0,1,1],[1,1,0,1]], 0)
-    net1.build_RBF_model([[0,0,0,0],[0,0,1,0],[0,1,1,0],[1,0,1,1],[1,1,0,1]], 3)
+    net = NNet(0.3)
+    net.build_RBF_model([[0,0,0,1], [0,0,1,1], [1,1,1,0]], 0)
+    net.build_RBF_model([[0,0,0,1], [0,0,1,1], [1,1,1,0]], 3)
 
     # Полный набор, пороговая функция
     #net1.build_RBF_model(generate_sets(4), 0)
     # Example
-    #net1.build_RBF_model([[0,0,0,1],[0,1,1,1],[1,0,1,0],[1,0,1,1],[1,1,1,0]], 0)
+    #net.build_RBF_model([[0,0,0,1],[0,1,1,1],[1,0,1,0],[1,0,1,1],[1,1,1,0]], 0)
 
 if __name__ == "__main__":
     main()
