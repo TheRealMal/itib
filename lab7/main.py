@@ -39,14 +39,12 @@ class RecurrentNNetwork:
             self.__previous_y[3][i] = -1
     
     def move_y(self) -> None:
-        self.__previous_y[0], self.__previous_y[1], self.__previous_y[2] = self.__previous_y[1], self.__previous_y[2], self.__previous_y[3]
+        self.__previous_y[0], self.__previous_y[1], self.__previous_y[2] = self.__previous_y[1].copy(), self.__previous_y[2].copy(), self.__previous_y[3].copy()
 
-    def check_cycling(self) -> bool:
-        print(self.__previous_y[0], self.__previous_y[1], self.__previous_y[2], self.__previous_y[3])
-        return self.__previous_y[0] == self.__previous_y[2] and self.__previous_y[1] == self.__previous_y[3]
+    def check_cycling(self, image) -> bool:
+        return self.__previous_y[0] == self.__previous_y[2] and self.__previous_y[1] == self.__previous_y[3] and image != self.__previous_y[3]
 
     def sync_mode(self) -> None:
-        self.move_y()
         for _ in range(self.__K):
             self.__net[_] = 0
             for __ in range(self.__K):
@@ -56,7 +54,6 @@ class RecurrentNNetwork:
             self.activation_func(_)
 
     def async_mode(self) -> None:
-        self.move_y()
         for _ in range(self.__K):
             self.__net[_] = 0
             for __ in range(self.__K):
@@ -89,24 +86,24 @@ class RecurrentNNetwork:
                         print(image[___], end=", " * (___ != len(image) - 1))
                     print(")")
                     return True
-            if self.check_cycling():
+            if self.check_cycling(image) and self.__epochs > 3:
+                print("Y' = (", end="")
+                for ___ in range(len(self.__previous_y[3])):
+                    print(image[___], end=", " * (___ != len(image) - 1))
+                print(")")
                 print("Невозможно распознать образ")
                 return False
+            self.move_y()
+
 
 def main():
-    '''net = RecurrentNNetwork([
-        [-1,-1,-1,1,1,-1,-1,-1,-1,1,1,1,1,1,1],
-        [1,1,1,1,1,-1,-1,1,-1,-1,1,1,-1,1,1],
-        [1,1,1,1,1,-1,-1,-1,-1,1,-1,-1,-1,-1,1]
-    ])
-    net.recover_image([1,1,1,1,1,-1,-1,1,-1,-1,1,1,-1,1,1], "async")'''
-
     # Example
     net = RecurrentNNetwork([
         [-1,1,-1,-1,1,1,1,1,1,1,-1,-1,-1,-1,1],
         [1,-1,1,1,1,1,-1,1,-1,1,1,1,1,-1,1],
         [1,-1,1,-1,1,1,-1,1,-1,1,1,1,1,1,1]
     ])
-    net.recover_image([-1,-1,1,-1,1,1,1,1,1,1,-1,-1,-1,-1,1], "sync")
+    net.recover_image([-1,-1,1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1], "sync")
+
 if __name__ == "__main__":
     main()
