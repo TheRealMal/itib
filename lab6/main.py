@@ -23,7 +23,7 @@ class MultilayerNNetwork:
         self.__output_e       = [0.0] * M
 
         self.__hidden_x       = [0] * (N + 1)
-        self.__output_x       = [0] * (J + 1)
+        self.__output_x       = [0] * J
 
         self.__plot           = []
 
@@ -40,7 +40,8 @@ class MultilayerNNetwork:
         for _ in range(self.__J):
             self.__hidden_net[_] = self.__hidden_w[_][0]
             for __ in range(self.__N):
-                self.__hidden_net[_] += self.__hidden_w[_][__ + 1] * self.__hidden_x[__]
+                self.__hidden_net[_] += self.__hidden_w[_][__ + 1] * self.__hidden_x[__ + 1]
+
         # I.3
         for _ in range(self.__J):
             self.__output_x[_] = self.activation_func(self.__hidden_net[_])
@@ -63,7 +64,7 @@ class MultilayerNNetwork:
         for _ in range(self.__J):
             hid_sum = 0
             for __ in range(self.__M):
-                hid_sum += self.__output_w[__][_] * self.__output_e[__]
+                hid_sum += self.__output_w[__][_+1] * self.__output_e[__]
             self.__hidden_e[_] = self.d_activation_func(self.__hidden_net[_]) * hid_sum
     
     def weights_correction(self) -> None:
@@ -72,8 +73,9 @@ class MultilayerNNetwork:
             for __ in range(len(self.__hidden_w[_])):
                 self.__hidden_w[_][__] += self.__learning_rate * self.__hidden_x[__] * self.__hidden_e[_]
         # III.2
-        for _ in range(len(self.__output_w)):
-            for __ in range(len(self.__output_w[_])):
+        self.__output_x = [1] + self.__output_x
+        for _ in range(self.__M):
+            for __ in range(self.__J + 1):
                 self.__output_w[_][__] += self.__learning_rate * self.__output_x[__] * self.__output_e[_]
 
     def __generate_plot(self) -> None:
