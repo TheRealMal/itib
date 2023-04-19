@@ -13,7 +13,7 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 class MultilayerNNetwork:
-    def __init__(self, N, J, M, X, T, learning_rate, epsilon_cap, default_weights=0) -> None:
+    def __init__(self, N, J, M, X, T, learning_rate, epsilon_cap) -> None:
         self.__N              = N
         self.__J              = J
         self.__M              = M
@@ -90,7 +90,6 @@ class MultilayerNNetwork:
     
     def weights_correction(self) -> None:
         # III.1
-        tmp_ = ""
         for _ in range(len(self.__hidden_w)):
             for __ in range(len(self.__hidden_w[_])):
                 self.__hidden_w[_][__] += self.__learning_rate * self.__hidden_x[__] * self.__hidden_e[_]
@@ -146,15 +145,13 @@ class MultilayerNNetwork:
         
 
 
-def main():
+def main() -> None:
     # 8 Variant
     net = MultilayerNNetwork(
         N = 1, J = 1, M = 3,
         X = [1, -2],
         T = [2, 1, 3],
-        learning_rate = 1,
-        epsilon_cap = 0.001,
-        default_weights = 0.5
+        learning_rate = 1
     )
     net.solve()
 
