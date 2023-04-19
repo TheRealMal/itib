@@ -35,9 +35,7 @@ class MultilayerNNetwork:
         self.__output_e       = [0.0] * M
 
         self.__hidden_x       = [0] * (N + 1)
-        self.__output_x       = [0] * (J + 1)
-
-        self.__plot           = []
+        self.__output_x       = [0] * J
 
     def activation_func(self, net) -> float:
         return 1 / (1 + np.exp(-net))
@@ -54,7 +52,7 @@ class MultilayerNNetwork:
             self.__hidden_net[_] = self.__hidden_w[_][0]
             tmp_.append("w1[0,{}]*1".format(_+1))
             for __ in range(self.__N):
-                self.__hidden_net[_] += self.__hidden_w[_][__ + 1] * self.__hidden_x[__]
+                self.__hidden_net[_] += self.__hidden_w[_][__ + 1] * self.__hidden_x[__ + 1]
                 tmp_.append("w1[{},{}]*x{}".format(__+1, _+1,__))
             print("net{}(1) = {} = {}".format(_+1, " + ".join(tmp_), np.round(self.__hidden_net[_], 3)))
         # I.3
@@ -83,11 +81,10 @@ class MultilayerNNetwork:
             self.__output_e[_] = self.d_activation_func(self.__output_net[_]) * (self.__t_arr[_] - self.__Y[_])
             print("e{}(2) = f' * (t{} - y{}) = {}".format(_+1, _+1, _+1, np.round(self.__output_e[_], 3)))
         # II.2
-
         for _ in range(self.__J):
             hid_sum = 0
             for __ in range(self.__M):
-                hid_sum += self.__output_w[__][_] * self.__output_e[__]
+                hid_sum += self.__output_w[__][_+1] * self.__output_e[__]
             self.__hidden_e[_] = self.d_activation_func(self.__hidden_net[_]) * hid_sum
             print("e{}(1) = f' * sum(w2[] * e(2)) = {}".format(_+1, np.round(self.__hidden_e[_], 3)))
     
@@ -99,18 +96,11 @@ class MultilayerNNetwork:
                 self.__hidden_w[_][__] += self.__learning_rate * self.__hidden_x[__] * self.__hidden_e[_]
                 print("w1[{},{}] += h * x{} * e{}(1) = {}".format(__, _+1, __, _+1, np.round(self.__hidden_w[_][__], 3)))
         # III.2
-        for _ in range(len(self.__output_w)):
-            for __ in range(len(self.__output_w[_])):
+        self.__output_x = [1] + self.__output_x
+        for _ in range(self.__M):
+            for __ in range(self.__J + 1):
                 self.__output_w[_][__] += self.__learning_rate * self.__output_x[__] * self.__output_e[_]
                 print("w2[{},{}] += h * x{} * e{}(2) = {}".format(__, _+1, __, _+1, np.round(self.__output_w[_][__], 3)))
-
-    def __generate_plot(self) -> None:
-        import matplotlib.pyplot as plt
-        plt.plot(self.__plot, "k-")
-        plt.ylabel("Суммарная ошибка")
-        plt.xlabel("Эпоха")
-        plt.grid(True)
-        plt.show()
 
     def __print_epoch(self, E, ifEnd=0) -> None:
         print("Эпоха #{} | Ошибка E = %.7f".format(self.__k) % np.round(E, 7))
