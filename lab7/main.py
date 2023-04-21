@@ -1,117 +1,120 @@
-import numpy as np
+import dearpygui.dearpygui as dpg
+from RNN import SAVED_IMAGES, RecurrentNNetwork
 
-class RecurrentNNetwork:
-    def __init__(self, images) -> None:
-        self.__images     = images                      # X
-        self.__L          = len(images)                 # Количество образов
-        self.__K          = len(images[0])              # Длина образа
-        self.__weights    = self.__set_weights(images)  # W
-        self.__previous_y = [[0] * self.__K, [0] * self.__K, [0] * self.__K, [0] * self.__K]
-        self.__net        = [0] * self.__K              # net
-        self.__epochs     = 0                           # Эпохи
+NET = RecurrentNNetwork(SAVED_IMAGES)
+CHECK_IMAGE = [0 for _ in range(15)]
 
-        self.__pretty_print_weights_matrix()
+dpg.create_context()
 
-    def __clear(self) -> None:
-        self.__previous_y = [[0] * self.__K, [0] * self.__K, [0] * self.__K, [0] * self.__K]
-        self.__net        = [0] * self.__K
-        self.__epochs     = 0
+#
+# Темы для сохраненных образов
+#
+with dpg.theme() as white_cell:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, [255, 255, 255])
 
-    def __set_weights(self, images) -> list:
-        weights = np.zeros((self.__K, self.__K))
-        for _ in range(self.__K):
-            for __ in range(self.__K):
-                if _ == __:
-                    continue
-                for ___ in range(self.__L):
-                    weights[_][__] += images[___][_] * images[___][__]
-        
-        return weights
+with dpg.theme() as black_cell:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, [0, 0, 0])
+
+with dpg.theme() as green_window:
+    with dpg.theme_component(dpg.mvWindowAppItem):
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, [23,162,95,255])
+        dpg.add_theme_color(dpg.mvThemeCol_Border, [23,162,95,255])
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, [23,162,95,255])
+
+#
+# Вывод окон с сохраненными образами
+#
+for i in range(len(SAVED_IMAGES)):
+    with dpg.window(
+        label="Image #{}".format(i + 1),
+        pos=(i*100, 0),
+        no_resize=True,
+        no_move=True,
+        no_close=True,
+        no_collapse=True,
+    ) as w:
+        dpg.bind_item_theme(w, green_window)
+        with dpg.table(header_row=False):
+            for _ in range(3):
+                dpg.add_table_column()
+            
+            for row in range(5):
+                with dpg.table_row():
+                    for col in range(3):
+                        cell = dpg.add_text("X")
+                        if SAVED_IMAGES[i][col * 5 + row] > 0:
+                            dpg.bind_item_theme(cell, white_cell)
+                        else:
+                            dpg.bind_item_theme(cell, black_cell)
+
+#
+# Callback функции для проверки образа
+#
+def check_table_callback(sender, app_data, user_data) -> None:
+    if app_data:
+        CHECK_IMAGE[user_data] = 1
+    else:
+        CHECK_IMAGE[user_data] = -1
+
+def check_result(sendes, app_data, user_data) -> None:
+    if user_data:
+        res = NET.recover_image(CHECK_IMAGE, "sync")
+    else:
+        res = NET.recover_image(CHECK_IMAGE, "async")
+    dpg.configure_item("result", default_value=res)
+
+#
+# Темы для окна с проверкой образа
+#
+with dpg.theme() as check_window:
+    with dpg.theme_component(dpg.mvWindowAppItem):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, [255, 255, 255])
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, [23,162,95,255])
     
-    def __pretty_print_weights_matrix(self) -> None:
-        print("W =")
-        print('\n'.join(['\t'.join([str(int(cell)) for cell in row]) for row in self.__weights]))
+with dpg.theme() as check_cell:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, [255, 255, 255])
 
-    def activation_func(self, i) -> None:
-        if self.__net[i] > 0:
-            self.__previous_y[3][i] = 1
-        elif self.__net[i] < 0:
-            self.__previous_y[3][i] = -1
-    
-    def move_y(self) -> None:
-        self.__previous_y[0], self.__previous_y[1], self.__previous_y[2] = self.__previous_y[1].copy(), self.__previous_y[2].copy(), self.__previous_y[3].copy()
+with dpg.theme() as check_buttons:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_color(dpg.mvThemeCol_Button, [23,162,95,255])
 
-    def check_cycling(self, image) -> (int, str):
-        if self.__previous_y[0] == self.__previous_y[2] and self.__previous_y[1] == self.__previous_y[3]:
-            return 1, "Зацикливание двух образов"
-        elif image == self.__previous_y[3]:
-            return 2, "Входной образ = выходной образ"
-        elif self.__previous_y[3] == self.__previous_y[2]:
-            return 3, "Входной образ = выходной образ v2"
-        return 0, ""
+with dpg.window(
+    label="Check image",
+    pos=(0, 150),
+    no_resize=True,
+    no_move=True,
+    no_close=True,
+    no_collapse=True,
+    width=300
+) as check_w:
+    dpg.bind_item_theme(check_w, check_window)
+    with dpg.table(header_row=False, width=100):
+        for _ in range(3):
+            dpg.add_table_column()
+        for row in range(5):
+            with dpg.table_row():
+                for col in range(3):
+                    cell = dpg.add_selectable(label="X", callback=check_table_callback, user_data=col * 5 + row)
+                    dpg.bind_item_theme(cell, check_cell)
+    with dpg.table(header_row=False, width=120):
+        for _ in range(2):
+            dpg.add_table_column()
+        with dpg.table_row():
+                b1 = dpg.add_button(label="SYNC", width=50, user_data=True, callback=check_result)
+                b2 = dpg.add_button(label="ASYNC", width=50, user_data=False, callback=check_result)
+                dpg.bind_item_theme(b1, check_buttons)
+                dpg.bind_item_theme(b2, check_buttons)
+    dpg.add_input_text(hint="RESULT", enabled=False, width=115, tag="result")
 
-    def sync_mode(self) -> None:
-        for _ in range(self.__K):
-            self.__net[_] = 0
-            for __ in range(self.__K):
-                if __ == _: continue
-                self.__net[_] += self.__weights[__][_] * self.__previous_y[3][__]
-        for _ in range(self.__K):
-            self.activation_func(_)
-
-    def async_mode(self) -> None:
-        for _ in range(self.__K):
-            self.__net[_] = 0
-            for __ in range(self.__K):
-                if __ == _: continue
-                self.__net[_] += self.__weights[__][_] * self.__previous_y[3][__]
-            self.activation_func(_)
-
-    def __print_epoch(self) -> None:
-        print("~" * 16)
-        print("Эпоха #{}".format(self.__epochs))
-        print("Y  = (", end="")
-        for _ in range(len(self.__previous_y[3])):
-            print(self.__previous_y[3][_], end=", " * (_ != len(self.__previous_y[3]) - 1))
-        print(")")
-
-    def recover_image(self, image, mode) -> bool:
-        self.__clear()
-        self.__previous_y[3] = image.copy()
-        while True:
-            self.__epochs += 1
-            if mode == "sync":
-                self.sync_mode()
-            elif mode == "async":
-                self.async_mode()
-            self.__print_epoch()
-            for _ in range(len(self.__images)):
-                if self.__images[_] == self.__previous_y[3]:
-                    print("Y' = (", end="")
-                    for ___ in range(len(self.__previous_y[3])):
-                        print(image[___], end=", " * (___ != len(image) - 1))
-                    print(")")
-                    return True
-                
-            check_result, check_mes = self.check_cycling(image)
-            if check_result:
-                print("Y' = (", end="")
-                for ___ in range(len(self.__previous_y[3])):
-                    print(image[___], end=", " * (___ != len(image) - 1))
-                print(")")
-                print("Невозможно распознать образ\n{}".format(check_mes))
-                return False
-            self.move_y()
-
-
-def main():
-    # Example
-    net = RecurrentNNetwork([
-        [-1,1,-1,-1,1,1,1,1,1,1,-1,-1,-1,-1,1],
-        [1,-1,1,1,1,1,-1,1,-1,1,1,1,1,-1,1],
-        [1,-1,1,-1,1,1,-1,1,-1,1,1,1,1,1,1]
-    ])
-    net.recover_image([-1,-1,1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1], "sync")
-
-if __name__ == "__main__":
-    main()
+dpg.create_viewport(
+    title="LAB7 by @therealmal",
+    width=300,
+    height=315,
+    resizable=False)
+dpg.setup_dearpygui()
+dpg.show_viewport()
+dpg.start_dearpygui()
+dpg.destroy_context()
