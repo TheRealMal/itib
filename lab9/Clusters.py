@@ -55,11 +55,12 @@ class KMeans(Clusters):
 
     def step(self) -> list:
         for _ in range(len(self.clusters)):
-            mean = [0, 0]
-            for obj_id in self.groups[_]:
-                mean[0] += self.objects[obj_id][0]
-                mean[1] += self.objects[obj_id][1]
-            self.clusters[_] = [mean[0] / len(self.groups[_]), mean[1] / len(self.groups[_])]
+            if len(self.groups[_]) > 0:
+                mean = [0, 0]
+                for obj_id in self.groups[_]:
+                    mean[0] += self.objects[obj_id][0]
+                    mean[1] += self.objects[obj_id][1]
+                self.clusters[_] = [mean[0] / len(self.groups[_]), mean[1] / len(self.groups[_])]
         self._distances = Clusters._get_distances(self)
         self.groups = Clusters._get_groups(self)
 
