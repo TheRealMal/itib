@@ -7,7 +7,7 @@ class Clusters:
         self.clusters = clusters
         self._d_func = d_func
         self._distances = self._get_distances()
-        self._groups = self._get_groups()
+        self.groups = self._get_groups()
 
     def _euclidean_d(self, a, b) -> float:
         return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
@@ -38,7 +38,7 @@ class Clusters:
     def _print(self) -> None:
         print("Objects:\n {}".format(self.objects))
         print("Clusters:\n {}".format(self.clusters))
-        print("Groups:\n {}".format(self._groups))
+        print("Groups:\n {}".format(self.groups))
         print()
 
 class KMeans(Clusters):
@@ -56,19 +56,14 @@ class KMeans(Clusters):
     def step(self) -> list:
         for _ in range(len(self.clusters)):
             mean = [0, 0]
-            for obj_id in self._groups[_]:
+            for obj_id in self.groups[_]:
                 mean[0] += self.objects[obj_id][0]
                 mean[1] += self.objects[obj_id][1]
-            self.clusters[_] = [mean[0] / len(self._groups[_]), mean[1] / len(self._groups[_])]
+            self.clusters[_] = [mean[0] / len(self.groups[_]), mean[1] / len(self.groups[_])]
         self._distances = Clusters._get_distances(self)
-        self._groups = Clusters._get_groups(self)
-
-class Kohonen(Clusters):
-    def __init__(self, objects, clusters, d_func):
-        super().__init__(objects, clusters, d_func)
+        self.groups = Clusters._get_groups(self)
 
 def main() -> None:
-    pass
     a = KMeans([[0,0], [1,1], [2,2], [3,3]], [[2,2], [3,3]], 0)
     a.start()
 
