@@ -49,7 +49,6 @@ class KMeans(Clusters):
         while True:
             old_clusters = self.clusters.copy()
             self.step()
-            Clusters._print(self)
             if old_clusters == self.clusters:
                 break
 
@@ -63,6 +62,7 @@ class KMeans(Clusters):
                 self.clusters[_] = [mean[0] / len(self.groups[_]), mean[1] / len(self.groups[_])]
         self._distances = Clusters._get_distances(self)
         self.groups = Clusters._get_groups(self)
+        Clusters._print(self)
 
 def main() -> None:
     a = KMeans([[0,0], [1,1], [2,2], [3,3]], [[2,2], [3,3]], 0)

@@ -5,7 +5,7 @@ import os.path
 import json
 from Clusters import KMeans
 
-OBJECTS_FILEPATH = "extractor/extracted.json"
+OBJECTS_FILEPATH = "./extractor/extracted.json"
 CLUSTERS_FILEPATH = ""
 
 OBJECTS_COORDS = []
@@ -13,12 +13,13 @@ CLUSTERS_COORDS = []
 DISTANCE_FUNC = 0
 
 if len(OBJECTS_FILEPATH) != 0 and os.path.exists(OBJECTS_FILEPATH):
+    print(1)
     OBJECTS_COORDS = json.load(open(OBJECTS_FILEPATH, "r"))
     # Если размер полотная сильно больше координат
     # точек, то можно увеличить их разброс
     for _ in range(len(OBJECTS_COORDS)):
-        OBJECTS_COORDS[_][0] += 5
-        OBJECTS_COORDS[_][1] += 5
+        OBJECTS_COORDS[_][0] += 4
+        OBJECTS_COORDS[_][1] += 4
         OBJECTS_COORDS[_][0] *= 10
         OBJECTS_COORDS[_][1] *= 10
 
