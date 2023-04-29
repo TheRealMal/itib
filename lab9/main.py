@@ -13,9 +13,8 @@ CLUSTERS_COORDS = []
 DISTANCE_FUNC = 0
 
 if len(OBJECTS_FILEPATH) != 0 and os.path.exists(OBJECTS_FILEPATH):
-    print(1)
     OBJECTS_COORDS = json.load(open(OBJECTS_FILEPATH, "r"))
-    # Если размер полотная сильно больше координат
+    # Если размер полотна сильно больше координат
     # точек, то можно увеличить их разброс
     for _ in range(len(OBJECTS_COORDS)):
         OBJECTS_COORDS[_][0] += 4
@@ -36,7 +35,7 @@ class Paint(object):
 
     def __init__(self) -> None:
         self.root = Tk()
-        self.root.title("LAB9 by therealmal")
+        self.root.title("LAB9 by @therealmal")
         self.add_point_b   = Button(self.root, text='Add point',   command=self.use_point)
         self.add_cluster_b = Button(self.root, text='Add cluster', command=self.use_cluster)
         self.clear_b       = Button(self.root, text='Clear',       command=self.clear)
